@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "s98_types.h"
+#include "s98d_types.h"
 #include "s98d.h"
 
 struct s98deviceinfo default_opna = DEFAULT_OPNA_DEVICE;

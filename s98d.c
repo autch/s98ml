@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include "s98_types.h"
+#include "s98d_types.h"
 #include "s98d.h"
 
 extern const
@@ -48,6 +48,11 @@ uint8_t read_byte(struct s98context* ctx)
     return *(ctx->p++);
 }
 
+void set_offset(struct s98context* ctx, off_t offset)
+{
+    ctx->p = ctx->s98_buffer + offset;
+}
+
 const char*
 device_name(enum s98devicetype type)
 {
@@ -77,7 +82,7 @@ int main(int ac, char** av)
     ctx->s98_size = stat.st_size;
     ctx->s98_buffer = malloc(ctx->s98_size);
     read(fd, ctx->s98_buffer, ctx->s98_size);
-    ctx->p = ctx->s98_buffer;
+    set_offset(ctx, 0);
     close(fd);
 
     read_header(ctx);

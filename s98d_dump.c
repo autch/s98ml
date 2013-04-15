@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
-#include "s98_types.h"
+#include "s98d_types.h"
 #include "s98d.h"
 
 int getvv(struct s98context* ctx)
@@ -26,12 +26,12 @@ int s98d_dump(struct s98context* ctx)
     uint8_t* tag_ptr;
     uint8_t* loop_ptr;
 
-    ctx->p = ctx->s98_buffer + h->offset_to_dump;
+    set_offset(ctx, h->offset_to_dump);
     tag_ptr = ctx->s98_buffer + h->offset_to_tag;
     loop_ptr = ctx->s98_buffer + h->offset_to_loop;
 
     for(;;) {
-        ch = *(ctx->p++);
+        ch = read_byte(ctx);
 
         if(ctx->p >= tag_ptr) {
             break;
@@ -44,8 +44,8 @@ int s98d_dump(struct s98context* ctx)
         if(ch < 0x80) {
             uint8_t addr, value;
             // register write
-            addr = *(ctx->p++);
-            value = *(ctx->p++);
+            addr = read_byte(ctx);
+            value = read_byte(ctx);
 
             if(current_ch != ch) {
                 char part_name = ch + 'A';
@@ -70,7 +70,7 @@ int s98d_dump(struct s98context* ctx)
         {
             int times = 0;
             if(h->version == 1) {
-                times = *(ctx->p++) + 2;
+                times = read_byte(ctx) + 2;
             } else {
                 times = getvv(ctx);
             }

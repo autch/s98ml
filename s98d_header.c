@@ -2,7 +2,7 @@
 #include <memory.h>
 #include <stdio.h>
 
-#include "s98_types.h"
+#include "s98d_types.h"
 #include "s98d.h"
 
 int read_header_v1(struct s98context* ctx);
@@ -67,7 +67,7 @@ int read_header_v1(struct s98context* ctx)
     header->device_count = 1;
 
     // skip reserved headers
-    ctx->p = ctx->s98_buffer + 0x40;
+    set_offset(ctx, 0x40);
 
     return 0;
 }
