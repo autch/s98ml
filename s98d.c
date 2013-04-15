@@ -88,13 +88,10 @@ int main(int ac, char** av)
     read_header(ctx);
     read_devices(ctx);
 
-    fprintf(stderr, "S98 Version %d\n", h->version);
-    fprintf(stderr, "Sync period %d/%d seconds\n", h->timer_numerator, h->timer_denominator);
-    fprintf(stderr, "Compression %s\n", h->compression ? "enabled" : "disabled");
-    fprintf(stderr, "Offset to tag: 0x%08x (0 if none)\n", h->offset_to_tag);
-    fprintf(stderr, "Dump start: 0x%08x\n", h->offset_to_dump);
-    fprintf(stderr, "Loop start: 0x%08x (0 if non-looped)\n", h->offset_to_loop);
-    fprintf(stderr, "Defined devices: %d\n", h->device_count);
+    printf("; S98 File: %s\n", *av);
+    printf("; Offset to tag: 0x%08x (0 if none)\n", h->offset_to_tag);
+    printf("; Dump start: 0x%08x\n", h->offset_to_dump);
+    printf("; Loop start: 0x%08x (0 if non-looped)\n", h->offset_to_loop);
 
     printf("#version %d\n", h->version);
     printf("#timer %d/%d\n", h->timer_numerator, h->timer_denominator);
@@ -147,8 +144,6 @@ int read_tag(struct s98context* ctx)
         this_is_utf8 = 1;
         tags_start += 3;
         printf("#encoding UTF-8\n");
-    } else {
-        printf("#encoding Shift_JIS\n");
     }
 
     char* line;
