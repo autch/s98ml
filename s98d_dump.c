@@ -25,20 +25,25 @@ int s98d_dump(struct s98context* ctx)
     struct s98header* h = &ctx->header;
     uint8_t* tag_ptr;
     uint8_t* loop_ptr;
+    uint8_t* end_ptr;
 
     set_offset(ctx, h->offset_to_dump);
     tag_ptr = ctx->s98_buffer + h->offset_to_tag;
     loop_ptr = ctx->s98_buffer + h->offset_to_loop;
+    end_ptr = ctx->s98_buffer + ctx->s98_size;
+    if(ctx->p < tag_ptr)
+        end_ptr = tag_ptr;
 
     for(;;) {
-        ch = read_byte(ctx);
-
-        if(ctx->p >= tag_ptr) {
-            break;
-        }
         if(ctx->p == loop_ptr) {
             printf("\n\n[\n");
             current_ch = -1;
+        }
+        ch = read_byte(ctx);
+
+        if(ctx->p > end_ptr) {
+            // fprintf(stderr, "end of dump reached\n");
+            break;
         }
 
         if(ch < 0x80) {

@@ -87,7 +87,6 @@ int main(int ac, char** av)
 
     read_header(ctx);
     read_devices(ctx);
-//    read_tag(fp, &context);
 
     fprintf(stderr, "S98 Version %d\n", h->version);
     fprintf(stderr, "Sync period %d/%d seconds\n", h->timer_numerator, h->timer_denominator);
@@ -99,6 +98,8 @@ int main(int ac, char** av)
 
     printf("#version %d\n", h->version);
     printf("#timer %d/%d\n", h->timer_numerator, h->timer_denominator);
+
+    read_tag(ctx);
 
     putchar('\n');
     {
@@ -122,13 +123,45 @@ int main(int ac, char** av)
     return 0;
 }
 
-// this function rewind()s!!
 int read_tag(struct s98context* ctx)
 {
     if(ctx->header.offset_to_tag == 0) {
         ctx->tag_or_title = NULL;
         return 0;
     }
+
+    ctx->tag_or_title = (char*)(ctx->s98_buffer + ctx->header.offset_to_tag);
+    if(ctx->header.version != 3) {
+        printf("#tag title \"%s\"\n", ctx->tag_or_title);
+        return 0;
+    }
+    
+    char* tag_area = strdup(ctx->tag_or_title);
+    int this_is_utf8 = 0;
+    char* tags_start = tag_area + 5;
+    if(memcmp(tag_area, "[S98]", 5) != 0) {
+        free(tag_area);
+        return -1;
+    }
+    if(memcmp(tag_area + 5, "\xef\xbb\xbf", 3) == 0) {
+        this_is_utf8 = 1;
+        tags_start += 3;
+        printf("#encoding UTF-8\n");
+    } else {
+        printf("#encoding Shift_JIS\n");
+    }
+
+    char* line;
+    char* saveptr = NULL;
+    while((line = strtok_r(tags_start, "\x0a", &saveptr)) != NULL) {
+        tags_start = NULL;
+        char* value = strchr(line, '=');
+        if(value == NULL) break;
+        *value = '\0';
+        printf("#tag %s \"%s\"\n", line, value + 1);
+    }
+    
+    free(tag_area);
 
     return 0;
 }

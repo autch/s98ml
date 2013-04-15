@@ -47,7 +47,7 @@ struct s98header {
 struct s98context {
     struct s98header header;
     struct s98deviceinfo* devices;
-    char* tag_or_title;
+    char* tag_or_title; // points to s98_buffer
 
     uint8_t* s98_buffer;
     size_t s98_size;
