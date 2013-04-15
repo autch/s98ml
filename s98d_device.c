@@ -2,12 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "s98_types.h"
+#include "s98d.h"
 
-const struct s98deviceinfo default_opna = DEFAULT_OPNA_DEVICE;
+struct s98deviceinfo default_opna = DEFAULT_OPNA_DEVICE;
 
-int read_dword(FILE* fp, uint32_t* result);
-
-int read_devices(FILE* fp, struct s98context* ctx)
+int read_devices(struct s98context* ctx)
 {
     if(ctx->header.version == 1) {
         ctx->devices = &default_opna;
@@ -23,10 +22,10 @@ int read_devices(FILE* fp, struct s98context* ctx)
         for(;;) {
             struct s98deviceinfo info;
             
-            read_dword(fp, &info.device);
-            read_dword(fp, &info.clock);
-            read_dword(fp, &info.panpot);
-            read_dword(fp, &info.reserved);
+            info.device = read_dword(ctx);
+            info.clock = read_dword(ctx);
+            info.panpot = read_dword(ctx);
+            info.reserved = read_dword(ctx);
 
             if(info.device == s98NONE) break;
 
@@ -59,11 +58,11 @@ int read_devices(FILE* fp, struct s98context* ctx)
 
         for(devices = 0; devices < ctx->header.device_count; devices++) {
             struct s98deviceinfo info;
-            
-            read_dword(fp, &info.device);
-            read_dword(fp, &info.clock);
-            read_dword(fp, &info.panpot);
-            read_dword(fp, &info.reserved);
+
+            info.device = read_dword(ctx);
+            info.clock = read_dword(ctx);
+            info.panpot = read_dword(ctx);
+            info.reserved = read_dword(ctx);
 
             ctx->devices[devices] = info;
         }

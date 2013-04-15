@@ -3,22 +3,21 @@
 #include <stdio.h>
 
 #include "s98_types.h"
+#include "s98d.h"
 
-int read_dword(FILE* fp, uint32_t* result);
+int read_header_v1(struct s98context* ctx);
+int read_header_v2(struct s98context* ctx);
+int read_header_v3(struct s98context* ctx);
 
-int read_header_v1(FILE* fp, struct s98header* header);
-int read_header_v2(FILE* fp, struct s98header* header);
-int read_header_v3(FILE* fp, struct s98header* header);
-
-int read_header(FILE* fp, struct s98header* header)
+int read_header(struct s98context* ctx)
 {
-    size_t bytes_read;
     char signature[4] = { 0 };
+    struct s98header* header = &ctx->header;
 
-    memset(header, 0, sizeof *header);
+    memset(&ctx->header, 0, sizeof(struct s98header));
 
-    bytes_read = fread(signature, 1, 4, fp);
-    if(bytes_read < 4) return -1;
+    memcpy(signature, ctx->p, 4);
+    ctx->p += 4;
 
     if(memcmp(signature, "S98", 3) != 0) {
         fprintf(stderr, "Magic mismatch: %.*s\n", 3, signature);
@@ -38,75 +37,82 @@ int read_header(FILE* fp, struct s98header* header)
     }
 
     switch(header->version) {
-    case 1: return read_header_v1(fp, header);
-    case 2: return read_header_v2(fp, header);
-    case 3: return read_header_v3(fp, header);
+    case 1: return read_header_v1(ctx);
+    case 2: return read_header_v2(ctx);
+    case 3: return read_header_v3(ctx);
     default: return -1;
     }
 }
 
-int read_header_v1(FILE* fp, struct s98header* header)
+int read_header_v1(struct s98context* ctx)
 {
-    read_dword(fp, &header->timer_numerator);
+    struct s98header* header = &ctx->header;
+
+    header->timer_numerator = read_dword(ctx);
     if(header->timer_numerator == 0)
         header->timer_numerator = DEFAULT_TIMER_NUMERATOR;
-    read_dword(fp, &header->timer_denominator);
+    header->timer_denominator = read_dword(ctx);
     header->timer_denominator = DEFAULT_TIMER_DENOMINATOR;
-    read_dword(fp, &header->compression);
+    header->compression = read_dword(ctx);
     
     if(header->compression != 0) {
         fprintf(stderr, "Compression is not supported\n");
         return -1;
     }
 
-    read_dword(fp, &header->offset_to_tag);
-    read_dword(fp, &header->offset_to_dump);
-    read_dword(fp, &header->offset_to_loop);
+    header->offset_to_tag = read_dword(ctx);
+    header->offset_to_dump = read_dword(ctx);
+    header->offset_to_loop = read_dword(ctx);
 
     header->device_count = 1;
 
     // skip reserved headers
-    fseek(fp, 0x40, SEEK_SET);
+    ctx->p = ctx->s98_buffer + 0x40;
 
     return 0;
 }
 
-int read_header_v2(FILE* fp, struct s98header* header)
+int read_header_v2(struct s98context* ctx)
 {
-    read_dword(fp, &header->timer_numerator);
+    struct s98header* header = &ctx->header;
+
+    header->timer_numerator = read_dword(ctx);
     if(header->timer_numerator == 0)
         header->timer_numerator = DEFAULT_TIMER_NUMERATOR;
-    read_dword(fp, &header->timer_denominator);
+    header->timer_denominator = read_dword(ctx);
     if(header->timer_denominator == 0)
         header->timer_denominator = DEFAULT_TIMER_DENOMINATOR;
-    read_dword(fp, &header->compression);
+    header->compression = read_dword(ctx);
     
     if(header->compression != 0) {
         fprintf(stderr, "Compression is not supported\n");
         return -1;
     }
 
-    read_dword(fp, &header->offset_to_tag);
-    read_dword(fp, &header->offset_to_dump);
-    read_dword(fp, &header->offset_to_loop);
-    read_dword(fp, &header->offset_to_compressed_data);
+    header->offset_to_tag = read_dword(ctx);
+    header->offset_to_dump = read_dword(ctx);
+    header->offset_to_loop = read_dword(ctx);
+    header->offset_to_compressed_data = read_dword(ctx);
 
     return 0;
 }
 
-int read_header_v3(FILE* fp, struct s98header* header)
+int read_header_v3(struct s98context* ctx)
 {
-    read_dword(fp, &header->timer_numerator);
+    struct s98header* header = &ctx->header;
+
+    header->timer_numerator = read_dword(ctx);
     if(header->timer_numerator == 0)
         header->timer_numerator = DEFAULT_TIMER_NUMERATOR;
-    read_dword(fp, &header->timer_denominator);
+    header->timer_denominator = read_dword(ctx);
     if(header->timer_denominator == 0)
         header->timer_denominator = DEFAULT_TIMER_DENOMINATOR;
-    read_dword(fp, &header->compression);
-    read_dword(fp, &header->offset_to_tag);
-    read_dword(fp, &header->offset_to_dump);
-    read_dword(fp, &header->offset_to_loop);
-    read_dword(fp, &header->device_count);
+    header->compression = read_dword(ctx);
+
+    header->offset_to_tag = read_dword(ctx);
+    header->offset_to_dump = read_dword(ctx);
+    header->offset_to_loop = read_dword(ctx);
+    header->device_count = read_dword(ctx);
 
     return 0;
 }
