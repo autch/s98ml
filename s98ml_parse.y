@@ -1,14 +1,23 @@
 %{
-
+    #include <stdio.h>
+    #include <stdint.h>
 %}
+%union{
+    struct hex_pair {
+        uint8_t addr, val;
+    } hp;
+    char* s;
+    int n;
+}
 
 %token COLON COMMA SLASH
-%token HEX DEC OCT BIN HEX_PAIR
+%token <n> HEX DEC OCT BIN
+%token <hp> HEX_PAIR
 %token EOL
-%token VERSION TIMER TAG DEVICE
-%token PART
-%token LOOP_START LOOP_END
-%token SYMBOL STRING
+%token VERSION TIMER TAG DEVICE ENCODING
+%token <n> PART
+%token LOOP_START LOOP_END SYNC
+%token <s> SYMBOL STRING
 
 %%
 
@@ -22,6 +31,7 @@ directives: VERSION DEC {  }
 | TIMER timerspec   { }
 | TAG SYMBOL STRING   {  }
 | DEVICE SYMBOL num optional_num {  }
+| ENCODING SYMBOL { }
 ;
 
 timerspec: DEC SLASH DEC
@@ -48,8 +58,8 @@ commands: sync
 | LOOP_END
 ;
 
-sync: SLASH
-| SLASH num
+sync: SYNC
+| SYNC num
 ;
 
 num: HEX
