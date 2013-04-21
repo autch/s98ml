@@ -85,7 +85,8 @@ int main(int ac, char** av)
     set_offset(ctx, 0);
     close(fd);
 
-    read_header(ctx);
+    if(read_header(ctx) != 0)
+        goto cleanup;
     read_devices(ctx);
 
     printf("; S98 File: %s\n", *av);
@@ -115,6 +116,8 @@ int main(int ac, char** av)
 
     putchar('\n');
 
+
+cleanup:
     free_context(&context);
 
     return 0;

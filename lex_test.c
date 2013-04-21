@@ -6,16 +6,23 @@
 
 void yyerror(char* s)
 {
-    printf(stderr, "%s\n", s);
+    fprintf(stderr, "%s\n", s);
 }
 
 int main()
 {
     int t;
     YYSTYPE value;
+    YYLTYPE location;
+    yyscan_t scanner;
 
-    while((t = yylex(&value)) != 0) {
+    yylex_init(&scanner);
+
+    while((t = yylex(&value, &location, scanner)) != 0) {
     }
+
+    yylex_destroy(scanner);
+
     return 0;
 }
 

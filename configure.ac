@@ -15,7 +15,7 @@ AM_PROG_LEX
 AC_PROG_YACC
 
 # Checks for libraries.
-AC_CHECK_LIB([fl], [yywrap])
+#AC_CHECK_LIB([fl], [yywrap])
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h inttypes.h memory.h stddef.h stdint.h stdlib.h string.h unistd.h])
@@ -37,3 +37,4 @@ AC_CHECK_FUNCS([memset strchr strdup])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
+

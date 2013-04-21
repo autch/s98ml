@@ -1,5 +1,5 @@
-#if !defined(s98_types_h)
-#define s98_types_h
+#if !defined(s98d_types_h)
+#define s98d_types_h
 
 #include <stdint.h>
 
@@ -54,4 +54,4 @@ struct s98context {
     uint8_t* p; // points s98_buffer
 };
 
-#endif // !s98_types_h
+#endif // !s98d_types_h

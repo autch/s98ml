@@ -9,7 +9,7 @@
     #include "s98ml_parse.h"
 %}
 
-%option bison-bridge
+%option reentrant bison-bridge bison-locations noyywrap
 %option header-file="s98ml_lex.h"
 
 %x string
@@ -42,42 +42,47 @@ SYMBOL		[_a-zA-Z0-9]+
 
 %%
 
-<<EOF>>		{ printf("EOF\n"); return 0; }
+<<EOF>>		{ return 0; }
 
 ";"		{ BEGIN(comment); yymore(); }
-<comment>{EOL}  { printf("COMMENT: %s\n", yytext); BEGIN(INITIAL); return EOL; }
+<comment>{EOL}  { BEGIN(INITIAL); return EOL; }
 <comment>[^\n]+ { yymore(); }
 
 \"		{ BEGIN(string); yymore(); }
 <string>{EOL}	{ fprintf(stderr, "unterminated quote: %s_n", yytext); BEGIN(INITIAL); return EOL; }
 <string>([^\"\n]|\\\"|\\\n)+	{ yymore(); }
-<string>\"	{ printf("STRING: %s\n", yytext); BEGIN(INITIAL); return STRING; }
+<string>\"	{ yylval->s = strdup(yytext); BEGIN(INITIAL); return STRING; }
 
-^{VERSION}	{ printf("VER: %s\n", yytext); return VERSION; }
-^{TIMER}	{ printf("TIMER: %s\n", yytext); return TIMER; }
-^{TAG}		{ printf("TAG: %s\n", yytext); return TAG; }
-^{DEVICE}	{ printf("DEV: %s\n", yytext); return DEVICE; }
-^{ENCODING}	{ printf("ENC: %s\n", yytext); return ENCODING; }
+^{VERSION}	{ return VERSION; }
+^{TIMER}	{ return TIMER; }
+^{TAG}		{ return TAG; }
+^{DEVICE}	{ return DEVICE; }
+^{ENCODING}	{ return ENCODING; }
 
-{HEX}		{ printf("HEX: %s\n", yytext); }
-{OCT}		{ printf("OCT: %s\n", yytext); }
-{DEC}		{ printf("DEC: %s\n", yytext); }
-{BIN}		{ printf("BIN: %s\n", yytext); }
-{HEX_PAIR}	{ printf("HP: %s\n", yytext); return HEX_PAIR; }
+{HEX}		{ yylval->n = strtol(yytext + 1, NULL, 16); return HEX; }
+{OCT}		{ yylval->n = strtol(yytext + 1, NULL,  8); return OCT; }
+{DEC}		{ yylval->n = strtol(yytext[0] == '#' ? yytext + 1 : yytext, NULL, 10); return DEC; }
+{BIN}		{ yylval->n = strtol(yytext + 1, NULL,  2); return BIN; }
+{HEX_PAIR}	{ 
+    yylval->hp.addr = strtol(yytext, NULL, 16);
+    yylval->hp.val = strtol(strchr(yytext, ':') + 1, NULL, 16);
 
-{COLON}		{ printf("COLON: %s\n", yytext); return COLON; }
-{COMMA}		{ printf("COMMA: %s\n", yytext); return COMMA; }
-^{SLASH}	{ printf("SYNC: %s\n", yytext); return SYNC; }
-{SLASH}		{ printf("SLASH: %s\n", yytext); return SLASH; }
+    return HEX_PAIR;
+}
 
-^{LOOP_START}	{ printf("LOOP: %s\n", yytext); return LOOP_START; }
-^{LOOP_END}	{ printf("END: %s\n", yytext); return LOOP_END; }
+{COLON}		{ return COLON; }
+{COMMA}		{ return COMMA; }
+^{SLASH}	{ return SYNC; }
+{SLASH}		{ return SLASH; }
 
-^{PART}		{ printf("PART: %s\n", yytext); return PART; }
+^{LOOP_START}	{ return LOOP_START; }
+^{LOOP_END}	{ return LOOP_END; }
 
-{SYMBOL}	{ printf("SYMBOL: %s\n", yytext); return SYMBOL; }
+^{PART}		{ yylval->n = yytext[0] - 'A'; return PART; }
 
-{EOL}		{ printf("//\n"); return EOL; }
+{SYMBOL}	{ yylval->s = strdup(yytext); return SYMBOL; }
+
+{EOL}		{ return EOL; }
 
 [[:blank:]]+	{ /* eat up all spaces */ }
 
