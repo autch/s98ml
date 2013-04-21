@@ -14,4 +14,6 @@ void s98c_set_loopstart(struct s98c* ctx);
 void s98c_write_sync_n(struct s98c* ctx, uint32_t num);
 void s98c_write(struct s98c* ctx, uint8_t n);
 
+int write_s98(struct s98c* ctx);
+
 #endif //! s98c_h
