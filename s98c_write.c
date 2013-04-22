@@ -206,8 +206,6 @@ int write_s98v3(struct s98c* ctx, FILE* fp)
     int loop_offset = 0;
     int dump_length = ctx->p - ctx->dump_buffer;
 
-    if(dump_offset < 0x80) dump_offset = 0x80;
-
     if(ctx->loop_start != NULL) {
         loop_offset = dump_offset + (ctx->loop_start - ctx->dump_buffer);
     }

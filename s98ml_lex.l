@@ -48,10 +48,10 @@ SYMBOL		[_a-zA-Z0-9]+
 <comment>{EOL}  { BEGIN(INITIAL); return EOL; }
 <comment>[^\n]+ { yymore(); }
 
-\"		{ BEGIN(string); yymore(); }
+\"		{ BEGIN(string); }
 <string>{EOL}	{ fprintf(stderr, "unterminated quote: %s_n", yytext); BEGIN(INITIAL); return EOL; }
 <string>([^\"\n]|\\\"|\\\n)+	{ yymore(); }
-<string>\"	{ yylval->s = strdup(yytext); BEGIN(INITIAL); return STRING; }
+<string>\"	{ yytext[yyleng-1] = '\0'; yylval->s = strdup(yytext); BEGIN(INITIAL); return STRING; }
 
 ^{VERSION}	{ return VERSION; }
 ^{TIMER}	{ return TIMER; }

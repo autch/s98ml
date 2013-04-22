@@ -9,6 +9,7 @@
 
 #include "s98c.h"
 
+void init_context(struct s98c* ctx);
 void free_context(struct s98c* ctx);
 
 int yyparse(struct s98c* ctx, yyscan_t scanner);
@@ -46,21 +47,7 @@ int main(int ac, char** av)
         ctx->output_filename = *++av;
     }
 
-    ctx->header.version = -1;
-    ctx->header.timer_numerator = DEFAULT_TIMER_NUMERATOR;
-    ctx->header.timer_denominator = DEFAULT_TIMER_DENOMINATOR;
-
-    ctx->dump_buffer = malloc(INITIAL_DUMP_SIZE);
-    ctx->dump_size = INITIAL_DUMP_SIZE;
-    ctx->p = ctx->dump_buffer;
-
-    ctx->tags = calloc(INITIAL_TAGS, sizeof(struct s98taginfo));
-    ctx->tags_allocated = INITIAL_TAGS;
-    ctx->tags_count = 0;
-
-    ctx->devices = calloc(INITIAL_DEVICES, sizeof(struct s98deviceinfo));
-    ctx->dev_count = INITIAL_DEVICES;
-    ctx->header.device_count = 0;
+    init_context(ctx);
 
     yylex_init(&scanner);
 
@@ -81,6 +68,25 @@ int main(int ac, char** av)
     return 0;
 }
 
+void init_context(struct s98c* ctx)
+{
+    ctx->header.version = -1;
+    ctx->header.timer_numerator = DEFAULT_TIMER_NUMERATOR;
+    ctx->header.timer_denominator = DEFAULT_TIMER_DENOMINATOR;
+
+    ctx->dump_buffer = malloc(INITIAL_DUMP_SIZE);
+    ctx->dump_size = INITIAL_DUMP_SIZE;
+    ctx->p = ctx->dump_buffer;
+
+    ctx->tags = calloc(INITIAL_TAGS, sizeof(struct s98taginfo));
+    ctx->tags_allocated = INITIAL_TAGS;
+    ctx->tags_count = 0;
+
+    ctx->devices = calloc(INITIAL_DEVICES, sizeof(struct s98deviceinfo));
+    ctx->dev_count = INITIAL_DEVICES;
+    ctx->header.device_count = 0;
+}
+
 void free_context(struct s98c* ctx)
 {
     if(ctx->devices) {
@@ -98,5 +104,3 @@ void free_context(struct s98c* ctx)
         free(ctx->dump_buffer);
     }
 }
-
-

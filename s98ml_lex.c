@@ -886,7 +886,7 @@ YY_RULE_SETUP
 case 4:
 YY_RULE_SETUP
 #line 51 "s98ml_lex.l"
-{ BEGIN(string); yymore(); }
+{ BEGIN(string); }
 	YY_BREAK
 case 5:
 /* rule 5 can match eol */
@@ -903,7 +903,7 @@ YY_RULE_SETUP
 case 7:
 YY_RULE_SETUP
 #line 54 "s98ml_lex.l"
-{ yylval->s = strdup(yytext); BEGIN(INITIAL); return STRING; }
+{ yytext[yyleng-1] = '\0'; yylval->s = strdup(yytext); BEGIN(INITIAL); return STRING; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
