@@ -72,6 +72,9 @@ struct s98c {
     uint8_t* loop_start; // points dump_buffer, address of LOOP_START
 
     int current_device; // current device, part - 'A'
+
+    char* input_filename;
+    char* output_filename; // points argv
 };
 
 #endif // !s98c_types_h

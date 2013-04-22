@@ -22,10 +22,29 @@ int main(int ac, char** av)
 {
     struct s98c context;
     struct s98c* ctx = &context;
-    struct s98deviceinfo default_device = DEFAULT_OPNA_DEVICE;
     yyscan_t scanner;
+    char* inputfile;
+    FILE* infp;
+    int ret;
 
     memset(ctx, 0, sizeof(struct s98c));
+
+    if(ac < 2 || ac > 3) {
+        fprintf(stderr, "Usage: %s inputfile.s98ml [outputfile.s98]\n", *av);
+        return 1;
+    }
+
+    inputfile = *++av;
+    infp = fopen(inputfile, "rb");
+    if(infp == NULL) {
+        perror(inputfile);
+        return 1;
+    }
+    ctx->input_filename = inputfile;
+
+    if(ac == 3) {
+        ctx->output_filename = *++av;
+    }
 
     ctx->header.version = -1;
     ctx->header.timer_numerator = DEFAULT_TIMER_NUMERATOR;
@@ -45,11 +64,17 @@ int main(int ac, char** av)
 
     yylex_init(&scanner);
 
-    yyparse(ctx, scanner);
+    yyset_in(infp, scanner);
+
+    ret = yyparse(ctx, scanner);
 
     yylex_destroy(scanner);
 
-    write_s98(ctx);
+    fclose(infp);
+
+    if(ret == 0) {
+        write_s98(ctx);
+    }
 
     free_context(ctx);
 

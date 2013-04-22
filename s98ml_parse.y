@@ -69,8 +69,8 @@ line: EOL
 
 directives: VERSION DEC		{ s98c_register_version(ctx, $2); }
 | TIMER timerspec		{ s98c_register_timer(ctx, $2.numerator, $2.denominator); }
-| TAG SYMBOL STRING		{ s98c_register_tag(ctx, $2, $3); /*free($2); free($3);*/ }
-| DEVICE SYMBOL num optional_num { s98c_register_device(ctx, $2, $3, $4); free($2); }
+| TAG SYMBOL STRING		{ if(s98c_register_tag(ctx, $2, $3)) YYERROR; /*free($2); free($3);*/ }
+| DEVICE SYMBOL num optional_num { if(s98c_register_device(ctx, $2, $3, $4)) YYERROR; free($2); }
 | ENCODING SYMBOL		{ printf("ENC: %s\n", $2); free($2); }
 ;
 
@@ -82,7 +82,7 @@ optional_num:			{ $$ = -1; }
 | num
 ;
 
-register_writes: PART { s98c_set_part(ctx, $1); } pairs
+register_writes: PART { if(s98c_set_part(ctx, $1)) YYERROR; } pairs
 ;
 
 pairs: pairs pair

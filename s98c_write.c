@@ -35,8 +35,33 @@ int write_s98v3(struct s98c* ctx, FILE* fp);
 int write_s98(struct s98c* ctx)
 {
     FILE* fp;
+    char* filename = NULL;
 
-    fp = fopen("s98out.s98", "wb");
+    if(ctx->output_filename == NULL) {
+        size_t fname_size;
+        char* p;
+
+        fname_size = strlen(ctx->input_filename);
+
+        filename = malloc(fname_size + 8 + 1);
+        strcpy(filename, ctx->input_filename);
+        p = strrchr(filename, '.');
+        if(p == NULL) p = filename + fname_size;
+        strcpy(p, ".s98");
+
+        fp = fopen(filename, "wb");
+        if(fp == NULL) {
+            perror(filename);
+            free(filename);
+            return 1;
+        }
+    } else {
+        fp = fopen(ctx->output_filename, "wb");
+        if(fp == NULL) {
+            perror(ctx->output_filename);
+            return 1;
+        }
+    }
 
     if(ctx->header.version == 1) {
         write_s98v1(ctx, fp);
@@ -49,6 +74,7 @@ int write_s98(struct s98c* ctx)
     }
 
     fclose(fp);
+    free(filename);
 
     return 0;
 }

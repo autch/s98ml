@@ -67,23 +67,29 @@ int main(int ac, char** av)
     struct s98context context;
     struct s98context* ctx = &context;
     struct s98header* h = &context.header;
-    struct stat stat;
-    int fd;
+    FILE* fp;
 
-    fd = open(*++av, O_RDONLY);
-    if(fd < 0) {
+    if(ac != 2) {
+        fprintf(stderr, "Usage: %s filename.s98\n", *av);
+        return 1;
+    }
+
+    fp = fopen(*++av, "rb");
+    if(fp == NULL) {
         perror(*av);
         return -1;
     }
 
     memset(ctx, 0, sizeof context);
 
-    fstat(fd, &stat);
-    ctx->s98_size = stat.st_size;
+    fseek(fp, 0, SEEK_END);
+    ctx->s98_size = ftell(fp);
     ctx->s98_buffer = malloc(ctx->s98_size);
-    read(fd, ctx->s98_buffer, ctx->s98_size);
+
+    rewind(fp);
+    fread(ctx->s98_buffer, 1, ctx->s98_size, fp);
     set_offset(ctx, 0);
-    close(fd);
+    fclose(fp);
 
     if(read_header(ctx) != 0)
         goto cleanup;

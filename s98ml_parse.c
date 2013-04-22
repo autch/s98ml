@@ -1509,14 +1509,14 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 72 "s98ml_parse.y"
-    { s98c_register_tag(ctx, (yyvsp[(2) - (3)].s), (yyvsp[(3) - (3)].s)); /*free($2); free($3);*/ }
+    { if(s98c_register_tag(ctx, (yyvsp[(2) - (3)].s), (yyvsp[(3) - (3)].s))) YYERROR; /*free($2); free($3);*/ }
     break;
 
   case 11:
 
 /* Line 1455 of yacc.c  */
 #line 73 "s98ml_parse.y"
-    { s98c_register_device(ctx, (yyvsp[(2) - (4)].s), (yyvsp[(3) - (4)].n), (yyvsp[(4) - (4)].n)); free((yyvsp[(2) - (4)].s)); }
+    { if(s98c_register_device(ctx, (yyvsp[(2) - (4)].s), (yyvsp[(3) - (4)].n), (yyvsp[(4) - (4)].n))) YYERROR; free((yyvsp[(2) - (4)].s)); }
     break;
 
   case 12:
@@ -1551,7 +1551,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 85 "s98ml_parse.y"
-    { s98c_set_part(ctx, (yyvsp[(1) - (1)].n)); }
+    { if(s98c_set_part(ctx, (yyvsp[(1) - (1)].n))) YYERROR; }
     break;
 
   case 21:
