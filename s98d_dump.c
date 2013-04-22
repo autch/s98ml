@@ -1,9 +1,12 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <inttypes.h>
 #include <unistd.h>
 #include "s98d_types.h"
 #include "s98d.h"
+
+#define BILLION		(1000*1000*1000)
 
 int getvv(struct s98context* ctx)
 {
@@ -15,6 +18,35 @@ int getvv(struct s98context* ctx)
     } while(*p++ & 0x80);
     ctx->p = p;
     return n + 2;
+}
+
+void step_timer(struct s98context* ctx, int count)
+{
+    long clock = count * ctx->header.timer_numerator;
+    long clocks_per_nsec = BILLION / ctx->header.timer_denominator;
+
+    ctx->sync_count += count;
+
+    clock *= clocks_per_nsec;
+    ctx->ts.tv_nsec += clock;
+    if(ctx->ts.tv_nsec >= BILLION) {
+	ctx->ts.tv_sec += ctx->ts.tv_nsec / BILLION;
+	ctx->ts.tv_nsec %= BILLION;
+    }
+}
+
+void print_timestamp(struct s98context* ctx, FILE* fp)
+{
+    struct timespec ts = ctx->ts;
+    int hh, mm, ss, nn;
+
+    nn = ts.tv_nsec;
+    ss = ts.tv_sec % 60;
+    mm = (ts.tv_sec / 60) % 60;
+    hh = (ts.tv_sec / 60 / 60);
+
+    fprintf(fp, "\t; %d:%02d:%02d.%09d (sync %" PRId64 ")",
+	    hh, mm, ss, nn, ctx->sync_count); // hh:mm:ss.nnnnnnnnn
 }
 
 int s98d_dump(struct s98context* ctx)
@@ -79,12 +111,18 @@ int s98d_dump(struct s98context* ctx)
             } else {
                 times = getvv(ctx);
             }
-            printf("\n/ %d", times);
+            printf("\n\n/ %d", times);
+	    step_timer(ctx, times);
+	    print_timestamp(ctx, stdout);
+	    putchar('\n');
             current_ch = -1;
             break;
         }
         case 0xff:
-            printf("\n/");
+            printf("\n\n/");
+	    step_timer(ctx, 1);
+	    print_timestamp(ctx, stdout);
+	    putchar('\n');
             current_ch = -1;
             break;
         default:

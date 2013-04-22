@@ -2,6 +2,7 @@
 #define s98d_types_h
 
 #include <stdint.h>
+#include <time.h>
 
 #define DEFAULT_TIMER_NUMERATOR 10
 #define DEFAULT_TIMER_DENOMINATOR 1000
@@ -48,6 +49,9 @@ struct s98context {
     struct s98header header;
     struct s98deviceinfo* devices;
     char* tag_or_title; // points to s98_buffer
+
+    struct timespec ts;
+    uint64_t sync_count;
 
     uint8_t* s98_buffer;
     size_t s98_size;
