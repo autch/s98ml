@@ -89,10 +89,10 @@ void init_context(struct s98c* ctx)
 
 void free_context(struct s98c* ctx)
 {
-    if(ctx->devices) {
+    if(ctx->devices != NULL) {
         free(ctx->devices);
     }
-    if(ctx->tags) {
+    if(ctx->tags != NULL) {
         int i;
         for(i = 0; i < ctx->tags_count; i++) {
             free(ctx->tags[i].key);
@@ -100,7 +100,10 @@ void free_context(struct s98c* ctx)
         }
         free(ctx->tags);
     }
-    if(ctx->dump_buffer) {
+    if(ctx->dump_buffer != NULL) {
         free(ctx->dump_buffer);
+    }
+    if(ctx->source_encoding != NULL) {
+        free(ctx->source_encoding);
     }
 }

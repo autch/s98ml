@@ -1,6 +1,7 @@
 /* -*- mode: c; tab-width: 8; -*- */
 
 %{
+    #define _XOPEN_SOURCE 500
     #include <stdint.h>
     #include <stdio.h>
     #include <string.h>
@@ -15,6 +16,7 @@
 %x string
 %x comment
 
+DUMP_START	>
 LOOP_START	\[
 LOOP_END	\]
 HEX		\$[0-9a-fA-F]+
@@ -75,6 +77,7 @@ SYMBOL		[_a-zA-Z0-9]+
 ^{SLASH}	{ return SYNC; }
 {SLASH}		{ return SLASH; }
 
+^{DUMP_START}	{ return DUMP_START; }
 ^{LOOP_START}	{ return LOOP_START; }
 ^{LOOP_END}	{ return LOOP_END; }
 

@@ -11,8 +11,10 @@ int s98c_register_tag(struct s98c* ctx, char* tagname, char* value);
 int s98c_set_part(struct s98c* ctx, int part);
 void s98c_write_reg(struct s98c* ctx, uint8_t addr, uint8_t value);
 void s98c_set_loopstart(struct s98c* ctx);
+int s98c_set_dumpstart(struct s98c* ctx);
 void s98c_write_sync_n(struct s98c* ctx, uint32_t num);
 void s98c_write(struct s98c* ctx, uint8_t n);
+int s98c_register_encoding(struct s98c* ctx, char* encoding);
 
 int write_s98(struct s98c* ctx);
 

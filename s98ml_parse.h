@@ -51,14 +51,15 @@
      LOOP_START = 267,
      LOOP_END = 268,
      SYNC = 269,
-     HEX = 270,
-     DEC = 271,
-     OCT = 272,
-     BIN = 273,
-     HEX_PAIR = 274,
-     PART = 275,
-     SYMBOL = 276,
-     STRING = 277
+     DUMP_START = 270,
+     HEX = 271,
+     DEC = 272,
+     OCT = 273,
+     BIN = 274,
+     HEX_PAIR = 275,
+     PART = 276,
+     SYMBOL = 277,
+     STRING = 278
    };
 #endif
 /* Tokens.  */
@@ -74,14 +75,15 @@
 #define LOOP_START 267
 #define LOOP_END 268
 #define SYNC 269
-#define HEX 270
-#define DEC 271
-#define OCT 272
-#define BIN 273
-#define HEX_PAIR 274
-#define PART 275
-#define SYMBOL 276
-#define STRING 277
+#define DUMP_START 270
+#define HEX 271
+#define DEC 272
+#define OCT 273
+#define BIN 274
+#define HEX_PAIR 275
+#define PART 276
+#define SYMBOL 277
+#define STRING 278
 
 
 
@@ -105,7 +107,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 109 "s98ml_parse.h"
+#line 111 "s98ml_parse.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

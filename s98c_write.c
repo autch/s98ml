@@ -1,8 +1,10 @@
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <iconv.h>
 #include "s98c_types.h"
 
 int write_dword(FILE* fp, uint32_t v)
@@ -63,14 +65,17 @@ int write_s98(struct s98c* ctx)
         }
     }
 
-    if(ctx->header.version == 1) {
+    switch(ctx->header.version) {
+    case 0:
+    case 1:
         write_s98v1(ctx, fp);
-    }
-    if(ctx->header.version == 2) {
+        break;
+    case 2:
         write_s98v2(ctx, fp);
-    }
-    if(ctx->header.version == 3) {
+        break;
+    case 3:
         write_s98v3(ctx, fp);
+        break;        
     }
 
     fclose(fp);
@@ -84,13 +89,16 @@ int write_s98v1(struct s98c* ctx, FILE* fp)
     int header_size = 0x40; 
     char* title = find_tag_value(ctx, "title");
     int tag_length = (title == NULL) ? 0 : strlen(title) + 1;
-    int dump_offset = header_size + tag_length;
+    int dump_offset = header_size + tag_length; // where dump bytes *REALLY* starts
     int loop_offset = 0;
     int dump_length = ctx->p - ctx->dump_buffer;
 
     if(dump_offset < 0x80) dump_offset = 0x80;
     if(ctx->loop_start != NULL) {
         loop_offset = dump_offset + (ctx->loop_start - ctx->dump_buffer);
+    }
+    if(ctx->dump_start != NULL) {
+        dump_offset += (ctx->dump_start - ctx->dump_buffer);
     }
     ctx->header.offset_to_tag = (title == NULL) ? 0 : 0x40;
     ctx->header.offset_to_dump = dump_offset;
@@ -127,13 +135,17 @@ int write_s98v2(struct s98c* ctx, FILE* fp)
     int tag_length = (title == NULL) ? 0 : strlen(title) + 1;
     int devices_size = sizeof(struct s98deviceinfo) * (ctx->header.device_count + 1);
     int dump_offset = header_size + devices_size + tag_length;
+    int tag_offset = (title == NULL) ? 0 : header_size + devices_size;
     int loop_offset = 0;
     int dump_length = ctx->p - ctx->dump_buffer;
 
     if(ctx->loop_start != NULL) {
         loop_offset = dump_offset + (ctx->loop_start - ctx->dump_buffer);
     }
-    ctx->header.offset_to_tag = (title == NULL) ? 0 : header_size + devices_size;
+    if(ctx->dump_start != NULL) {
+        dump_offset += (ctx->dump_start - ctx->dump_buffer);
+    }
+    ctx->header.offset_to_tag = tag_offset;
     ctx->header.offset_to_dump = dump_offset;
     ctx->header.offset_to_loop = loop_offset;
 
@@ -170,33 +182,90 @@ int write_s98v2(struct s98c* ctx, FILE* fp)
     return 0;
 }
 
-char* serialize_tags(struct s98c* ctx)
+int write_iconv(iconv_t cd, char* input, FILE* fp)
+{
+    char buffer[1024] = { 0 };
+    char* in_p;
+    char* out_p;
+    size_t in_size, out_size, ret = -1;
+
+    in_p = input;
+    in_size = strlen(input);
+
+    out_p = buffer;
+    out_size = sizeof buffer;
+
+    iconv(cd, NULL, NULL, NULL, NULL);
+    iconv(cd, NULL, NULL, &out_p, &out_size);
+    
+    while(in_size > 0 && out_size > 0) {
+        ret = iconv(cd, &in_p, &in_size, &out_p, &out_size);
+        if(ret == -1) {
+            switch(errno) {
+            case EINVAL:
+            case E2BIG:
+            case EILSEQ:
+            default:
+                perror("iconv failed: ");
+                return -1;
+            }
+        } else { 
+            fwrite(buffer, 1, out_p - buffer, fp);
+            out_p = buffer;
+            out_size = sizeof buffer;
+        }
+    }
+    return ret;
+}
+
+int write_s98v3_tags_utf8(struct s98c* ctx, FILE* fp)
 {
     int i;
-    size_t total_size = 5 + 1; //"[S98]" and the last nil
+    iconv_t cd;
 
-    if(ctx->tags_count == 0) return NULL;
+    if(ctx->tags_count == 0) return 0;
 
-    if(0) { total_size += 3; } // BOM (unsupported)
-   
-    for(i = 0; i < ctx->tags_count; i++) {
-        struct s98taginfo* info = ctx->tags + i;
-        
-        total_size += strlen(info->key) + 1 + strlen(info->value) + 1; // key '=' value '\n'
+    cd = iconv_open("UTF-8", ctx->source_encoding);
+    if(cd == (iconv_t)-1) {
+        perror("Cannot setup charset conversion: ");
+        return 1;
     }
 
-    char* buffer = malloc(total_size);
-    char* p = buffer;
+    fprintf(fp, "[S98]\xef\xbb\xbf");
+
+    for(i = 0; i < ctx->tags_count; i++) {
+        struct s98taginfo* info = ctx->tags + i;
+
+        write_iconv(cd, info->key, fp);
+        fputc('=', fp);
+        write_iconv(cd, info->value, fp);
+        fputc('\x0a', fp);
+    }
+
+    fputc(0, fp);
+    iconv_close(cd);
     
-    p += sprintf(p, "[S98]");
+    return 0;
+}
+
+int write_s98v3_tags(struct s98c* ctx, FILE* fp)
+{
+    int i;
+
+    if(ctx->source_encoding != NULL) return write_s98v3_tags_utf8(ctx, fp);
+
+    if(ctx->tags_count == 0) return 0;
+
+    fprintf(fp, "[S98]");
     for(i = 0; i < ctx->tags_count; i++) {
         struct s98taginfo* info = ctx->tags + i;
-        p += sprintf(p, "%s=%s\x0a", info->key, info->value);
+        fprintf(fp, "%s=%s\x0a", info->key, info->value);
     }
-    *p++ = '\0';
+    fputc(0, fp);
 
-    return buffer;
+    return 0;
 }
+
 
 int write_s98v3(struct s98c* ctx, FILE* fp)
 {
@@ -205,11 +274,15 @@ int write_s98v3(struct s98c* ctx, FILE* fp)
     int dump_offset = header_size + devices_size;
     int loop_offset = 0;
     int dump_length = ctx->p - ctx->dump_buffer;
+    int tag_offset = (ctx->tags_count == 0) ? 0 : dump_offset + dump_length;
 
     if(ctx->loop_start != NULL) {
         loop_offset = dump_offset + (ctx->loop_start - ctx->dump_buffer);
     }
-    ctx->header.offset_to_tag = (ctx->tags_count == 0) ? 0 : dump_offset + dump_length;
+    if(ctx->dump_start != NULL) {
+        dump_offset += (ctx->dump_start - ctx->dump_buffer);
+    }
+    ctx->header.offset_to_tag = tag_offset;
     ctx->header.offset_to_dump = dump_offset;
     ctx->header.offset_to_loop = loop_offset;
 
@@ -234,13 +307,7 @@ int write_s98v3(struct s98c* ctx, FILE* fp)
     }
     
     fwrite(ctx->dump_buffer, 1, dump_length, fp);
-
-    char* tags = serialize_tags(ctx);
-    if(tags != NULL) {
-        fwrite(tags, 1, strlen(tags) + 1, fp);
-
-        free(tags);
-    }
+    write_s98v3_tags(ctx, fp);
 
     return 0;
 }

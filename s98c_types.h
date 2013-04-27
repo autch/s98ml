@@ -70,11 +70,13 @@ struct s98c {
     uint8_t* p; // points dump_buffer
 
     uint8_t* loop_start; // points dump_buffer, address of LOOP_START
-
+    uint8_t* dump_start; // points dump_buffer, address of DUMP_START
     int current_device; // current device, part - 'A'
 
     char* input_filename;
     char* output_filename; // points argv
+
+    char* source_encoding; // if this is non-NULL, S98V3 tags will be in UTF-8 encoding
 };
 
 #endif // !s98c_types_h

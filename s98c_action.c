@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
+#include <strings.h>
 #include "s98c_types.h"
 
 struct s98deviceref {
@@ -31,7 +32,7 @@ int s98c_register_version(struct s98c* ctx, int version)
         ctx->header.version = version;
         return 0;
     } else {
-        fprintf(stderr, "Cannot place multiple #version's (already defined as %d)\n", ctx->header.version);
+        fprintf(stderr, "error: Cannot place multiple #version's (already defined as %d)\n", ctx->header.version);
         return 1;
     }
 }
@@ -58,20 +59,15 @@ uint32_t s98c_find_device(char* symbol)
 int s98c_register_device(struct s98c* ctx, char* dev_name, uint32_t clock, uint8_t panpot)
 {
     if(ctx->header.version == -1) {
-        fprintf(stderr, "Cannot define #device without #version\n");
+        fprintf(stderr, "error: Cannot define #device without #version\n");
         return 1;
     }
-/*    if(ctx->header.version == 1) {
-      fprintf(stderr, "Cannot define #device in S98 version 1\n");
-      return 1;
-      }*/
-
     {
         struct s98deviceinfo info;
 
         info.device = s98c_find_device(dev_name);
         if(info.device == -1) {
-            fprintf(stderr, "Undefined device name: %s\n", dev_name);
+            fprintf(stderr, "error: Undefined device name: %s\n", dev_name);
             return 2;
         }
         info.clock = clock;
@@ -95,7 +91,7 @@ int s98c_register_tag(struct s98c* ctx, char* tagname, char* value)
 
     for(i = 0; i < ctx->tags_count; i++) {
         if(strcasecmp(ctx->tags[i].key, tagname) == 0) {
-            fprintf(stderr, "Tag \"%s\" already exists: %s\n", tagname, ctx->tags[i].value);
+            fprintf(stderr, "error: Tag \"%s\" already exists: %s\n", tagname, ctx->tags[i].value);
             return 1;
         }
     }
@@ -111,14 +107,28 @@ int s98c_register_tag(struct s98c* ctx, char* tagname, char* value)
     return 0;
 }
 
+int s98c_register_encoding(struct s98c* ctx, char* encoding)
+{
+    if(ctx->header.version != 3) {
+        fprintf(stderr, "warning: #encoding is ignored other than S98V3\n");
+    }
+
+    ctx->source_encoding = strdup(encoding);
+
+    return 0;
+}
+
 void s98c_write(struct s98c* ctx, uint8_t n)
 {
     if(ctx->p >= ctx->dump_buffer + ctx->dump_size) {
         ptrdiff_t p_offset = ctx->p - ctx->dump_buffer;
-        ptrdiff_t loop_offset = 0;
+        ptrdiff_t loop_offset = 0, dump_offset = 0;
 
         if(ctx->loop_start != NULL) {
             loop_offset = ctx->loop_start - ctx->dump_buffer;
+        }
+        if(ctx->dump_start != NULL) {
+            dump_offset = ctx->dump_start - ctx->dump_buffer;
         }
 
         ctx->dump_size += DUMP_SIZE_INCREMENT;
@@ -128,6 +138,9 @@ void s98c_write(struct s98c* ctx, uint8_t n)
         if(ctx->loop_start != NULL) {
             ctx->loop_start = ctx->dump_buffer + loop_offset;
         }
+        if(ctx->dump_start != NULL) {
+            ctx->dump_start = ctx->dump_buffer + dump_offset;
+        }
     }
     
     *ctx->p++ = n;
@@ -136,11 +149,11 @@ void s98c_write(struct s98c* ctx, uint8_t n)
 int s98c_set_part(struct s98c* ctx, int part)
 {
     if(ctx->header.version == -1) {
-        fprintf(stderr, "Missing #version\n");
+        fprintf(stderr, "error: Missing #version\n");
         return 1;
     }
     if(part >= ctx->header.device_count * 2) {
-        fprintf(stderr, "Use of part %c exceeds number of defined #device's\n",
+        fprintf(stderr, "error: Use of part %c exceeds number of defined #device's\n",
                 part + 'A');
         return 2;
     }
@@ -160,6 +173,21 @@ void s98c_set_loopstart(struct s98c* ctx)
 {
     ctx->loop_start = ctx->p;
     // s98 doesn't have LOOP START command, it's just an address
+}
+
+int s98c_set_dumpstart(struct s98c* ctx)
+{
+    if(ctx->loop_start != NULL) {
+        fprintf(stderr, "error: Dump start '%%' must be put before loop start '['\n");
+        return 1;
+    }
+    if(ctx->dump_start != NULL) {
+        fprintf(stderr, "error: Multiple '%%'s\n");
+        return 2;
+    }
+    ctx->dump_start = ctx->p;
+
+    return 0;
 }
 
 void s98c_write_sync_n(struct s98c* ctx, uint32_t num)
@@ -185,4 +213,3 @@ void s98c_write_sync_n(struct s98c* ctx, uint32_t num)
         s98c_write(ctx, num & 0xff);
     }
 }
-

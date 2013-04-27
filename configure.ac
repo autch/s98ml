@@ -18,7 +18,7 @@ AC_PROG_YACC
 
 # Checks for header files.
 AC_FUNC_ALLOCA
-AC_CHECK_HEADERS([fcntl.h inttypes.h libintl.h malloc.h memory.h stddef.h stdint.h stdlib.h string.h unistd.h])
+AC_CHECK_HEADERS([fcntl.h inttypes.h libintl.h malloc.h memory.h stddef.h stdint.h stdlib.h string.h strings.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_INT16_T
@@ -28,13 +28,14 @@ AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
 AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
+AC_TYPE_UINT64_T
 AC_TYPE_UINT8_T
-AC_CHECK_TYPES([ptrdiff_t])
+AC_CHECK_TYPES([ptrdiff_t, struct timespec])
 
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS([memset strcasecmp strchr strdup strtol])
+AC_CHECK_FUNCS([memset strcasecmp strchr strrchr strdup strtok_r strtol])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

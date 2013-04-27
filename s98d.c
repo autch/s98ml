@@ -1,5 +1,6 @@
 // s98 decomposer
 
+#define _XOPEN_SOURCE 500
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>

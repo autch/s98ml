@@ -43,6 +43,7 @@
 %token ENCODING
 %token LOOP_START
 %token LOOP_END SYNC
+%token DUMP_START
 
 %token <n> HEX
 %token <n> DEC
@@ -71,7 +72,7 @@ directives: VERSION DEC		{ s98c_register_version(ctx, $2); }
 | TIMER timerspec		{ s98c_register_timer(ctx, $2.numerator, $2.denominator); }
 | TAG SYMBOL STRING		{ if(s98c_register_tag(ctx, $2, $3)) YYERROR; /*free($2); free($3);*/ }
 | DEVICE SYMBOL num optional_num { if(s98c_register_device(ctx, $2, $3, $4)) YYERROR; free($2); }
-| ENCODING SYMBOL		{ printf("ENC: %s\n", $2); free($2); }
+| ENCODING SYMBOL		{ if(s98c_register_encoding(ctx, $2)) YYERROR; free($2); }
 ;
 
 timerspec: DEC SLASH DEC	{ $$.numerator = $1; $$.denominator = $3; }
@@ -96,6 +97,7 @@ pair: HEX_PAIR			{ s98c_write_reg(ctx, $1.addr, $1.val); }
 commands: sync
 | LOOP_START			{ s98c_set_loopstart(ctx); }
 | LOOP_END			{ s98c_write(ctx, 0xfd); }
+| DUMP_START			{ if(s98c_set_dumpstart(ctx)) YYERROR; }
 ;
 
 sync: SYNC			{ s98c_write_sync_n(ctx, 1); }

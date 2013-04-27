@@ -30,8 +30,8 @@ void step_timer(struct s98context* ctx, int count)
     clock *= clocks_per_nsec;
     ctx->ts.tv_nsec += clock;
     if(ctx->ts.tv_nsec >= BILLION) {
-	ctx->ts.tv_sec += ctx->ts.tv_nsec / BILLION;
-	ctx->ts.tv_nsec %= BILLION;
+        ctx->ts.tv_sec += ctx->ts.tv_nsec / BILLION;
+        ctx->ts.tv_nsec %= BILLION;
     }
 }
 
@@ -46,7 +46,7 @@ void print_timestamp(struct s98context* ctx, FILE* fp)
     hh = (ts.tv_sec / 60 / 60);
 
     fprintf(fp, "\t; %d:%02d:%02d.%09d (sync %" PRId64 ")",
-	    hh, mm, ss, nn, ctx->sync_count); // hh:mm:ss.nnnnnnnnn
+            hh, mm, ss, nn, ctx->sync_count); // hh:mm:ss.nnnnnnnnn
 }
 
 int s98d_dump(struct s98context* ctx)
@@ -86,16 +86,13 @@ int s98d_dump(struct s98context* ctx)
 
             if(current_ch != ch) {
                 char part_name = ch + 'A';
-                printf("\n%c ", part_name);
+                line_chars = printf("\n%c ", part_name);
                 current_ch = ch;
-                line_chars = 2;
             }
             if(line_chars + 6 >= 80) {
-                printf("\n%c ", current_ch + 'A');
-                line_chars = 2;
+                line_chars = printf("\n%c ", current_ch + 'A');
             }
-            printf("%02x:%02x ", addr, value);
-            line_chars += 6;
+            line_chars += printf("%02x:%02x ", addr, value);
             continue;
         }
         switch(ch) {
@@ -112,17 +109,17 @@ int s98d_dump(struct s98context* ctx)
                 times = getvv(ctx);
             }
             printf("\n\n/ %d", times);
-	    step_timer(ctx, times);
-	    print_timestamp(ctx, stdout);
-	    putchar('\n');
+            step_timer(ctx, times);
+            print_timestamp(ctx, stdout);
+            putchar('\n');
             current_ch = -1;
             break;
         }
         case 0xff:
             printf("\n\n/");
-	    step_timer(ctx, 1);
-	    print_timestamp(ctx, stdout);
-	    putchar('\n');
+            step_timer(ctx, 1);
+            print_timestamp(ctx, stdout);
+            putchar('\n');
             current_ch = -1;
             break;
         default:
