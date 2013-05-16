@@ -30,3 +30,8 @@ Makefile
 /install-sh
 /missing
 /ylwrap
+
+s98ml_parse.h
+s98ml_lex.h
+s98ml_parse.c
+s98ml_lex.c

@@ -40,7 +40,7 @@ ENCODING	#encoding
 
 PART		[A-Z]
 
-SYMBOL		[_a-zA-Z0-9]+
+SYMBOL		[-_a-zA-Z0-9]+
 
 %%
 
