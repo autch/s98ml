@@ -1,8 +1,19 @@
 #if !defined(s98d_types_h)
 #define s98d_types_h
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdint.h>
 #include <time.h>
+
+#ifndef HAVE_STRUCT_TIMESPEC
+struct timespec {
+    time_t tv_sec;        /* seconds */
+    long   tv_nsec;       /* nanoseconds */
+};
+#endif
 
 #define DEFAULT_TIMER_NUMERATOR 10
 #define DEFAULT_TIMER_DENOMINATOR 1000

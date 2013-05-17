@@ -18,7 +18,7 @@ AC_PROG_YACC
 
 # Checks for header files.
 AC_FUNC_ALLOCA
-AC_CHECK_HEADERS([fcntl.h inttypes.h libintl.h malloc.h memory.h stddef.h stdint.h stdlib.h string.h strings.h unistd.h])
+AC_CHECK_HEADERS([fcntl.h inttypes.h iconv.h malloc.h memory.h stddef.h stdint.h stdlib.h string.h strings.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_INT16_T

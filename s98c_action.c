@@ -1,4 +1,8 @@
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -112,6 +116,9 @@ int s98c_register_encoding(struct s98c* ctx, char* encoding)
     if(ctx->header.version != 3) {
         fprintf(stderr, "warning: #encoding is ignored other than S98V3\n");
     }
+#ifndef HAVE_ICONV_H
+    fprintf(stderr, "warning: #encoding is ignored because s98c was built without iconv support\n");
+#endif
 
     ctx->source_encoding = strdup(encoding);
 

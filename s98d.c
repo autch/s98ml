@@ -1,5 +1,9 @@
 // s98 decomposer
 
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #define _XOPEN_SOURCE 500
 #include <errno.h>
 #include <stdio.h>
@@ -157,8 +161,12 @@ int read_tag(struct s98context* ctx)
     }
 
     char* line;
+#ifdef HAVE_STRTOK_R
     char* saveptr = NULL;
     while((line = strtok_r(tags_start, "\x0a", &saveptr)) != NULL) {
+#else
+    while((line = strtok(tags_start, "\x0a")) != NULL) {
+#endif
         tags_start = NULL;
         char* value = strchr(line, '=');
         if(value == NULL) break;

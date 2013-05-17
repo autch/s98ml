@@ -1,10 +1,16 @@
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#if HAVE_ICONV_H
 #include <iconv.h>
+#endif
 #include "s98c_types.h"
 
 int write_dword(FILE* fp, uint32_t v)
@@ -182,6 +188,7 @@ int write_s98v2(struct s98c* ctx, FILE* fp)
     return 0;
 }
 
+#ifdef HAVE_ICONV_H
 int write_iconv(iconv_t cd, char* input, FILE* fp)
 {
     char buffer[1024] = { 0 };
@@ -247,12 +254,15 @@ int write_s98v3_tags_utf8(struct s98c* ctx, FILE* fp)
     
     return 0;
 }
+#endif
 
 int write_s98v3_tags(struct s98c* ctx, FILE* fp)
 {
     int i;
 
+#ifdef HAVE_ICONV_H
     if(ctx->source_encoding != NULL) return write_s98v3_tags_utf8(ctx, fp);
+#endif
 
     if(ctx->tags_count == 0) return 0;
 
