@@ -37,6 +37,8 @@ AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([memset strcasecmp strchr strrchr strdup strtok_r strtol])
 
+AM_ICONV
+
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
 

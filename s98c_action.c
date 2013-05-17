@@ -116,7 +116,7 @@ int s98c_register_encoding(struct s98c* ctx, char* encoding)
     if(ctx->header.version != 3) {
         fprintf(stderr, "warning: #encoding is ignored other than S98V3\n");
     }
-#ifndef HAVE_ICONV_H
+#ifndef HAVE_ICONV
     fprintf(stderr, "warning: #encoding is ignored because s98c was built without iconv support\n");
 #endif
 
