@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>
-#include <unistd.h>
 #include "s98d_types.h"
 #include "s98d.h"
 

@@ -8,6 +8,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef HAVE_STRCASECMP
+#include <strings.h>
+#endif
 #if HAVE_ICONV
 #include <iconv.h>
 #endif
@@ -29,7 +32,13 @@ char* find_tag_value(struct s98c* ctx, char* tagname)
 {
     int i;
     for(i = 0; i < ctx->tags_count; i++) {
+#ifdef HAVE_STRCASECMP
         if(strcasecmp(ctx->tags[i].key, tagname) == 0) {
+#else
+#ifdef _MSC_VER
+        if(_stricmp(ctx->tags[i].key, tagname) == 0) {
+#endif
+#endif
             return ctx->tags[i].value;
         }
     }

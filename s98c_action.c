@@ -7,7 +7,9 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
+#ifdef HAVE_STRCASECMP
 #include <strings.h>
+#endif
 #include "s98c_types.h"
 
 struct s98deviceref {
@@ -52,7 +54,13 @@ uint32_t s98c_find_device(char* symbol)
     struct s98deviceref* ref = s98devicenames;
 
     for(; ref->name != NULL; ref++) {
+#ifdef HAVE_STRCASECMP
         if(strcasecmp(ref->name, symbol) == 0) {
+#else
+#ifdef _MSC_VER
+        if(_stricmp(ref->name, symbol) == 0) {
+#endif
+#endif
             return ref->dev_num;
         }
     }
@@ -94,7 +102,13 @@ int s98c_register_tag(struct s98c* ctx, char* tagname, char* value)
     struct s98taginfo info;
 
     for(i = 0; i < ctx->tags_count; i++) {
+#ifdef HAVE_STRCASECMP
         if(strcasecmp(ctx->tags[i].key, tagname) == 0) {
+#else
+#ifdef _MSC_VER
+        if(_stricmp(ctx->tags[i].key, tagname) == 0) {
+#endif
+#endif
             fprintf(stderr, "error: Tag \"%s\" already exists: %s\n", tagname, ctx->tags[i].value);
             return 1;
         }
