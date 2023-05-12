@@ -14,7 +14,7 @@ void free_context(struct s98c* ctx);
 
 int yyparse(struct s98c* ctx, yyscan_t scanner);
 
-void yyerror(YYLTYPE* loc, struct s98c* ctx, yyscan_t scanner, char* s)
+void yyerror(YYLTYPE* loc, struct s98c* ctx, yyscan_t scanner, const char* s)
 {
     fprintf(stderr, "%s\n", s);
 }
@@ -31,7 +31,11 @@ int main(int ac, char** av)
     memset(ctx, 0, sizeof(struct s98c));
 
     if(ac < 2 || ac > 3) {
-        fprintf(stderr, "Usage: %s inputfile.s98ml [outputfile.s98]\n", *av);
+#ifdef HAVE_ICONV
+        fprintf(stderr, "Usage: %s inputfile.s98ml [outputfile.s98]\nCompiled with iconv support\n", *av);
+#else
+        fprintf(stderr, "Usage: %s inputfile.s98ml [outputfile.s98]\nCompiled WITHOUT iconv support (cannot use #encoding)\n", *av);
+#endif
         return 1;
     }
 

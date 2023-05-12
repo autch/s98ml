@@ -11,7 +11,8 @@
 %}
 
 %option reentrant bison-bridge bison-locations noyywrap
-%option header-file="s98ml_lex.h"
+%option nounput
+%option noyy_scan_buffer noyy_scan_bytes noyy_scan_string
 
 %x string
 %x comment

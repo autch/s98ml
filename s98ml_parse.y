@@ -4,10 +4,15 @@
     #include <stdio.h>
     #include <stdint.h>
 
+    #include "s98c_types.h"
+    #include "s98ml_parse.h"
+    #include "s98ml_lex.h"
+    #include "s98c.h"
+
     #define YYLEX_PARAM scanner
 %}
-%error-verbose
-%pure_parser
+%define parse.error verbose
+%define api.pure
 %locations
 %union{
     struct hex_pair {
@@ -20,13 +25,11 @@
     int n;
 }
 %{
-    #include "s98c_types.h"
-    #include "s98ml_lex.h"
-    #include "s98c.h"
-    extern void yyerror(YYLTYPE* loc, struct s98c* ctx, yyscan_t scanner, char* s);
+    extern void yyerror(YYLTYPE* loc, struct s98c* ctx, yyscan_t scanner, const char* s);
 %}
 %parse-param { struct s98c* ctx }
-%parse-param { yyscan_t scanner }
+%parse-param { void* scanner }
+%lex-param { scanner }
 
 %type <ts> timerspec
 %type <n> num

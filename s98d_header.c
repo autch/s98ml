@@ -1,5 +1,5 @@
 
-#include <memory.h>
+#include <string.h>
 #include <stdio.h>
 
 #include "s98d_types.h"

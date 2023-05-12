@@ -9,11 +9,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <memory.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <fcntl.h>
 
 #include "s98d_types.h"
 #include "s98d.h"
